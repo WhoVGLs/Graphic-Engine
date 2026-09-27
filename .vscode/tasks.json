@@ -1,0 +1,40 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "CMake: Configure",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "-S",
+        "${workspaceFolder}",
+        "-B",
+        "${workspaceFolder}/build-msys",
+        "-G",
+        "MSYS Makefiles",
+        "-DCMAKE_CXX_COMPILER=C:/msys64/ucrt64/bin/g++.exe",
+        "-DCMAKE_PREFIX_PATH=C:/msys64/ucrt64"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "CMake: Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": ["--build", "${workspaceFolder}/build-msys"],
+      "dependsOn": "CMake: Configure",
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "problemMatcher": ["$gcc"]
+    },
+    {
+      "label": "CMake: Run",
+      "type": "shell",
+      "command": "${workspaceFolder}/build-msys/GraphicEngine.exe",
+      "dependsOn": "CMake: Build",
+      "problemMatcher": []
+    }
+  ]
+}

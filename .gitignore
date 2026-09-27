@@ -1,0 +1,14 @@
+# Build folders
+build/
+build-msys/
+
+# Compiled files
+*.exe
+*.o
+*.obj
+
+# CMake generated
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile

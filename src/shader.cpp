@@ -20,8 +20,10 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath) {
         fragmentCode = fShaderStream.str();
     }
 
-    catch (std::ifstream::failure e) {
-        std::cerr << "ERORR::SHADER::FILE_NOT_SUCCESFULLY_READ\n" << std::endl;
+    catch (const std::ifstream::failure& e)
+    {
+        std::cerr << "ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ\n"
+                  << e.what() << std::endl;
     }
 
     const char* vShadercode = vertexCode.c_str();

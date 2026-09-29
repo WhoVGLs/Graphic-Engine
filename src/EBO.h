@@ -3,19 +3,23 @@
 
 #include <GL/glew.h>
 
+/*
+    EBO = Element Buffer Object.
+    Fungsinya adalah menyimpan indeks vertex yang membentuk polygon/triangle.
+    Contoh: [0, 1, 2, 1, 2, 3] untuk membuat 2 segitiga.
+*/
 class EBO
 {
 public:
-	// ID reference of Elements Buffer Object
+	// ID buffer indeks di OpenGL.
 	GLuint ID;
-	// Constructor that generates a Elements Buffer Object and links it to indices
+
+	// Konstruktor: buat buffer EBO lalu isi dengan data indeks.
 	EBO(GLuint* indices, GLsizeiptr size);
 
-	// Binds the EBO
+	// Bind / unbind / delete buffer.
 	void Bind();
-	// Unbinds the EBO
 	void Unbind();
-	// Deletes the EBO
 	void Delete();
 };
 

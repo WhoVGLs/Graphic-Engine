@@ -1,5 +1,14 @@
 #include "VBO.h"
 
+/*
+    VBO::VBO
+    - glGenBuffers: menghasilkan ID buffer baru
+    - glBindBuffer: memilih buffer ini sebagai target aktif
+    - glBufferData: mengirim data vertex ke GPU
+
+    GL_STATIC_DRAW artinya data ini jarang berubah, sehingga bisa disimpan di GPU
+    dengan optimasi yang cocok.
+*/
 VBO::VBO(GLfloat* vertices, GLsizeiptr size){
     glGenBuffers(1, &ID);
     glBindBuffer(GL_ARRAY_BUFFER, ID);

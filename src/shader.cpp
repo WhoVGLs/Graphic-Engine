@@ -1,5 +1,12 @@
 #include "shader.h"
 
+/*
+    Constructor ini bertanggung jawab untuk:
+    1. membaca file shader vertex dan fragment
+    2. mengompilasi keduanya
+    3. menggabungkan keduanya menjadi satu program OpenGL
+    4. menangkap error jika compile/link gagal
+*/
 Shader::Shader(const char* vertexPath, const char* fragmentPath) {
     std::string vertexCode;
     std::string fragmentCode;
@@ -33,6 +40,7 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath) {
     int success;
     char infoLog[512];
 
+    // Buat shader vertex dan compile.
     vertex = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertex, 1, &vShadercode, NULL);
     glCompileShader(vertex);
@@ -40,8 +48,9 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath) {
     if (!success) {
         glGetShaderInfoLog(vertex, 512, nullptr, infoLog);
         std::cerr << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
-    };
+    }
 
+    // Buat shader fragment dan compile.
     fragment = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(fragment, 1, &fShadercode, NULL);
     glCompileShader(fragment);
@@ -49,8 +58,9 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath) {
     if (!success) {
         glGetShaderInfoLog(fragment, 512, nullptr, infoLog);
         std::cerr << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
-    };
+    }
 
+    // Gabungkan shader vertex dan fragment menjadi satu program render.
     ID = glCreateProgram();
     glAttachShader(ID, vertex);
     glAttachShader(ID, fragment);
@@ -62,13 +72,15 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath) {
         glGetProgramInfoLog(ID, 512, NULL, infoLog);
         std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
     }
-    
+
+    // Setelah program selesai, shader individual tidak perlu disimpan lagi.
     glDeleteShader(vertex);
     glDeleteShader(fragment);
 };
 
 void Shader::use() 
 {
+    // Set program shader aktif agar GPU memakai shader ini saat draw.
     glUseProgram(ID);
 }
 

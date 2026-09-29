@@ -4,21 +4,26 @@
 #include <GL/glew.h>
 #include"VBO.h"
 
+/*
+    VAO = Vertex Array Object.
+    Fungsinya adalah menyimpan konfigurasi bagaimana vertex data dibaca oleh GPU.
+    Jadi semuanya yang berhubungan dengan format vertex disimpan di sini.
+*/
 class VAO
 {
 public:
-	// ID reference for the Vertex Array Object
+	// ID object VAO yang dibuat OpenGL.
 	GLuint ID;
-	// Constructor that generates a VAO ID
+
+	// Constructor: buat VAO baru.
 	VAO();
 
-	// Links a VBO to the VAO using a certain layout
+	// Hubungkan VBO ke VAO dengan format atribut tertentu.
 	void LinkVBO(VBO& VBO, GLuint layout, GLuint size, GLsizei stride, const void* offset);
-	// Binds the VAO
+
+	// Bind / unbind / delete VAO.
 	void Bind();
-	// Unbinds the VAO
 	void Unbind();
-	// Deletes the VAO
 	void Delete();
 };
 #endif

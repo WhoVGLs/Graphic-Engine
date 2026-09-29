@@ -1,12 +1,26 @@
 #include"VAO.h"
 
-// Constructor that generates a VAO ID
+/*
+    VAO::VAO
+    - glGenVertexArrays: bikin object VAO baru
+    - VAO ini nantinya bertindak seperti 'template' untuk atribut vertex
+*/
 VAO::VAO()
 {
 	glGenVertexArrays(1, &ID);
 }
 
-// Links a VBO to the VAO using a certain layout
+/*
+    LinkVBO ini menjelaskan ke OpenGL:
+    - atribut ke berapa yang kita pakai (layout)
+    - jumlah komponen per atribut (size)
+    - tipe data (GL_FLOAT)
+    - stride: jarak antar data vertex
+    - offset: mulai dari indeks ke berapa dalam struktur data
+
+    Misalnya untuk vertex {x, y, z, r, g, b, u, v},
+    atribut 0 bisa baca x,y,z, atribut 1 baca r,g,b, atribut 2 baca u,v.
+*/
 void VAO::LinkVBO(VBO& VBO, GLuint layout, GLuint size, GLsizei stride, const void* offset)
 {
 	VBO.Bind();
@@ -15,19 +29,16 @@ void VAO::LinkVBO(VBO& VBO, GLuint layout, GLuint size, GLsizei stride, const vo
 	VBO.Unbind();
 }
 
-// Binds the VAO
 void VAO::Bind()
 {
 	glBindVertexArray(ID);
 }
 
-// Unbinds the VAO
 void VAO::Unbind()
 {
 	glBindVertexArray(0);
 }
 
-// Deletes the VAO
 void VAO::Delete()
 {
 	glDeleteVertexArrays(1, &ID);

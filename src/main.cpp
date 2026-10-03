@@ -1,6 +1,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include <vector>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -31,21 +32,49 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 const unsigned int width = 600;
 const unsigned int height = 600;
 
-// Data geometri quad: 4 vertex, masing-masing punya 8 float:
-// x, y, z, r, g, b, u, v
-// x/y/z = posisi 3D, r/g/b = warna, u/v = koordinat texture
-GLfloat vertices[] {
-    -0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, // kiri bawah
-    0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, // kanan bawah
-    -0.5f, 0.5f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, // kiri atas
-    0.5f, 0.5f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f // kanan atas
+// Struktur vertex yang lebih rapi pakai GLM vec.
+struct Vertex {
+    glm::vec3 position;
+    glm::vec3 color;
+    glm::vec2 texCoord;
 };
 
-unsigned int indices[] {
-    // Dua segitiga untuk membentuk quad:
-    // 0 - 1 - 2  lalu 1 - 2 - 3
+// Quad sederhana untuk baseline: 4 vertex, 2 triangle.
+std::vector<Vertex> vertices = {
+    { glm::vec3(-0.5f, -0.5f, -1.0f/2), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(0.0f, 0.0f) },
+    { glm::vec3( 0.5f, -0.5f, -1.0f/2), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(1.0f, 0.0f) },
+    { glm::vec3(-0.5f,  0.5f, -1.0f/2), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(0.0f, 1.0f) },
+    { glm::vec3( 0.5f,  0.5f, -1.0f/2), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(1.0f, 1.0f) },
+    { glm::vec3(-0.5f, -0.5f, 1.0f/2), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(0.0f, 0.0f) },
+    { glm::vec3( 0.5f, -0.5f, 1.0f/2), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(1.0f, 0.0f) },
+    { glm::vec3(-0.5f,  0.5f, 1.0f/2), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(0.0f, 1.0f) },
+    { glm::vec3( 0.5f,  0.5f, 1.0f/2), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(1.0f, 1.0f) }
+};
+
+std::vector<unsigned int> indices = {
+    // back face
     0, 1, 2,
-    1, 2, 3 
+    1, 3, 2,
+
+    // front face
+    4, 6, 5,
+    5, 6, 7,
+
+    // left face
+    0, 2, 4,
+    2, 6, 4,
+
+    // right face
+    1, 5, 3,
+    3, 5, 7,
+
+    // top face
+    2, 3, 6,
+    3, 7, 6,
+
+    // bottom face
+    0, 4, 1,
+    1, 4, 5
 };
 
 int main() {
@@ -83,7 +112,7 @@ int main() {
         glfwTerminate();
         return -1;
     }
-    
+
     // 4. Siapkan texture 2D yang akan dipakai untuk quad.
     unsigned int texture;
     glGenTextures(1, &texture);
@@ -111,13 +140,28 @@ int main() {
     // 5. Muat dan kompilasi shader vertex + fragment.
     Shader shader("reasource/shader/shader.vert", "reasource/shader/shader.frag");
 
+    // Ubah data GLM ke format flat float agar OpenGL bisa upload ke VBO.
+    std::vector<GLfloat> vertexData;
+    vertexData.reserve(vertices.size() * 8);
+
+    for (const auto& vertex : vertices) {
+        vertexData.push_back(vertex.position.x);
+        vertexData.push_back(vertex.position.y);
+        vertexData.push_back(vertex.position.z);
+        vertexData.push_back(vertex.color.r);
+        vertexData.push_back(vertex.color.g);
+        vertexData.push_back(vertex.color.b);
+        vertexData.push_back(vertex.texCoord.x);
+        vertexData.push_back(vertex.texCoord.y);
+    }
+
     // 6. Buat object VAO (Vertex Array Object) untuk mengelola layout vertex.
     VAO VAO1;
     VAO1.Bind();
 
     // 7. Buat buffer GPU untuk vertex dan indeks.
-    VBO VBO1(vertices, sizeof(vertices));
-    EBO EBO1(indices, sizeof(indices));
+    VBO VBO1(vertexData.data(), static_cast<GLsizeiptr>(vertexData.size() * sizeof(GLfloat)));
+    EBO EBO1(indices.data(), static_cast<GLsizeiptr>(indices.size() * sizeof(unsigned int)));
 
     // 8. Jelaskan ke GPU cara membaca data di VBO per atribut vertex.
     // Atribut 0 = posisi (vec3) -> x,y,z
@@ -133,29 +177,33 @@ int main() {
     EBO1.Unbind();
     
     // 9. Render loop: terus cek apakah window ditutup, lalu gambar ulang.
+    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    glEnable(GL_DEPTH_TEST);
     while (!glfwWindowShouldClose(window)) {
-        //glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
-        
-        //float timeValue = glfwGetTime();
-        //std::cout << timeValue << std::endl;
-        //float colorValue = (sin(timeValue) / 2.0f) + 0.5;
-        //std::cout << colorValue << std::endl;
-        //int vertexColorLocation = glGetUniformLocation(shader.ID, "testColor");
-        //glUniform4f(vertexColorLocation, 0.0, colorValue, 0.0, 1.0);
-        
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
         // Aktifkan texture di slot 0 lalu bind texture yang sudah kita buat.
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture);
-        
+
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(0.0f, 1.0f, 1.0f));
+
+        glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -3.0f));
+        float aspect = (float)width / (float)height;
+        glm::mat4 projection = glm::perspective(glm::radians(45.0f), aspect, 0.1f, 100.0f);
+        glm::mat4 mvp = projection * view * model;
+
         // Pilih shader yang akan dipakai untuk render frame ini.
         shader.use();
-        
+        glUniform1i(glGetUniformLocation(shader.ID, "textureSampler"), 0);
+        glUniformMatrix4fv(glGetUniformLocation(shader.ID, "transform"), 1, GL_FALSE, glm::value_ptr(mvp));
+
         // Bind VAO agar atribut vertex yang sudah kita atur aktif kembali.
         VAO1.Bind();
 
-        // Gambar 2 segitiga (6 indeks total) yang membentuk quad.
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        // Gambar semua segitiga kubus.
+        glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(indices.size()), GL_UNSIGNED_INT, 0);
 
         // Tampilkan hasil render ke window dan cek event input.
         glfwSwapBuffers(window);
